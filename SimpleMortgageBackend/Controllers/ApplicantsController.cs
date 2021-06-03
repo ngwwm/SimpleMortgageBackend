@@ -166,7 +166,7 @@ namespace SimpleMortgageBackend.Controllers
                 _context.Applicants.Add(applicant);
                 await _context.SaveChangesAsync();
                 /* StatusCodes.Status201Created */
-                return CreatedAtAction("GetApplicant", new { id = applicant.Id }, applicant);
+                return CreatedAtAction("PostApplicant", new { id = applicant.Id }, applicant);
             } else
             {
                 return StatusCode(StatusCodes.Status200OK, appl.Result);
