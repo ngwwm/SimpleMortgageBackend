@@ -16,8 +16,6 @@ namespace SimpleMortgageBackend.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly SimpleMortgageDbContext _context;
-        private static int MAX_ALLOWED_LTV = 90;
-        private static int MIN_ALLOWED_AGE = 18;
 
         public ProductsController(SimpleMortgageDbContext context)
         {
@@ -26,31 +24,9 @@ namespace SimpleMortgageBackend.Controllers
 
         // GET: api/Products
         [HttpGet]
-        //public async Task<ActionResult<IEnumerable<Product>>> GetProduct()
-        public async Task<ActionResult<IEnumerable<Product>>> GetProduct(int? applicantid, double? propertyval, double? depositamt)
+        public async Task<ActionResult<IEnumerable<Product>>> GetProduct()        
         {
-            if (applicantid == null)
-                return await _context.Products.ToListAsync();
-
-            if (propertyval == null || depositamt == null)
-                return NotFound(new { error = "Property Value/Deposit Amount is missing." });
-
-            var applicant = await _context.Applicants.FindAsync(applicantid);
-            if (applicant == null)
-            {
-                return NotFound(new { error = "Applicant not exists." });
-            }
-
-            /* If the LTV is not less than 90%, or the applicant is under 18, no products should be returned. */
-            var ltv = (propertyval - depositamt) / propertyval * 100;
-            var age = (DateTime.Now - applicant.DOB).TotalDays / 365;
-
-            if (ltv >= MAX_ALLOWED_LTV || age < MIN_ALLOWED_AGE)
-            {
-                return NotFound(new { error = "Loan to Value is not less than 90% or applicant is under 18." });
-            }
-
-            return await _context.Products.Where(p => p.LTV >= ltv).ToListAsync();
+            return await _context.Products.ToListAsync();
         }
 
         // GET: api/Products/5
@@ -65,28 +41,6 @@ namespace SimpleMortgageBackend.Controllers
             }
 
             return product;
-        }
-
-        // GET: api/Products/Applicant/1?PropertyVal=n&DepositAmt=n
-        [HttpGet("Applicant/{applicantid}")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProduct(int applicantid, int propertyval, int depositamt)
-        {
-            var applicant = await _context.Applicants.FindAsync(applicantid);
-            if (applicant == null)
-            {
-                return NotFound();
-            }
-
-            /* If the LTV is not less than 90%, or the applicant is under 18, no products should be returned. */
-            var ltv = (propertyval - depositamt) / propertyval * 100;
-            var age = (DateTime.Now - applicant.DOB).TotalDays / 365;
-            
-            if (ltv > MAX_ALLOWED_LTV || age < MIN_ALLOWED_AGE)
-            {
-                return NotFound();
-            }
-
-            return await _context.Products.Where(p => p.LTV >= ltv).ToListAsync();
         }
 
         // PUT: api/Products/5

@@ -16,6 +16,10 @@ namespace SimpleMortgageBackend.Controllers
     {
         private readonly SimpleMortgageDbContext _context;
 
+        /* below 2 constants are better put in configuration file or database */
+        private static int MAX_ALLOWED_LTV = 90;
+        private static int MIN_ALLOWED_AGE = 18;
+
         public ApplicantsController(SimpleMortgageDbContext context)
         {
             _context = context;
@@ -41,6 +45,42 @@ namespace SimpleMortgageBackend.Controllers
 
             return applicant;
         }
+
+        // GET: api/Applicants/1/Products?PropertyVal=n&DepositAmt=n
+        [HttpGet("{id}/Products")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetApplicant(int id, double propertyval, double depositamt)
+        {
+            if (propertyval <= 0)
+                return BadRequest(new { error = "Property Value cannot be less than or equal to zero." });
+
+            if (depositamt <= 0)
+                return BadRequest(new { error = "Deposit Amount cannot be less than or equal to zero." });
+
+            /* If the LTV is not less than 90%, or the applicant is under 18, no products should be returned. */
+            var ltv = (propertyval - depositamt) / propertyval * 100;
+
+            if (ltv > MAX_ALLOWED_LTV)
+            {
+                return BadRequest(new { error = "Loan to Value (" + ltv + "%) cannot exceed 90%." } );
+            }
+
+            var applicant = await _context.Applicants.FindAsync(id);
+            if (applicant == null)
+            {
+                return BadRequest(new { error = "Applicant not exists" });
+            }
+
+            var age = (DateTime.Now - applicant.DOB).TotalDays / 365;
+
+
+            if (age < MIN_ALLOWED_AGE)
+            {
+                return BadRequest(new { error = "Applicant age (" + Math.Round(age,1) + ") cannot be under 18." });
+            }
+
+            return await _context.Products.Where(p => p.LTV >= ltv).ToListAsync();
+        }
+
 
         // PUT: api/Applicants/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -83,15 +123,16 @@ namespace SimpleMortgageBackend.Controllers
                     .Where(e => e.FirstName.ToLower() == applicant.FirstName.Trim().ToLower())
                     .Where(e => e.DOB == applicant.DOB)
                     .Where(e => e.Email == applicant.Email.Trim().ToLower()).SingleOrDefaultAsync();
-            //var b = _context.Applicants.SingleOrDefaultAsync(e => e.Id == applicant.Id);
+            
             if ( appl.Result == null) 
             {
                 _context.Applicants.Add(applicant);
                 await _context.SaveChangesAsync();
+                /* StatusCodes.Status201Created */
                 return CreatedAtAction("GetApplicant", new { id = applicant.Id }, applicant);
             } else
             {
-                return appl.Result;
+                return StatusCode(StatusCodes.Status200OK, appl.Result);
             }
 
         }

@@ -43,7 +43,9 @@ namespace SimpleMortgageBackend
                 options.AddPolicy(AllowLocalhostOrigins,
                 builder =>
                 {
-                    builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost");
+                    builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
                 });
             });
 

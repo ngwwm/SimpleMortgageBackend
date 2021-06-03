@@ -13,9 +13,9 @@ namespace SimpleMortgageBackend.Models
         public string FirstName { get; set; }
         [Display(Name = "Last Name"), StringLength(50), Required]
         public string LastName { get; set; }
-        [Display(Name = "Date of Birth"), DisplayFormat(DataFormatString = "dd-mm-yyyy", ApplyFormatInEditMode = true), Required]
+        [Display(Name = "Date of Birth"), DisplayFormat(DataFormatString = "yyyy-MM-dd", ApplyFormatInEditMode = true), Required]
         public DateTime DOB { get; set; }
+        [Required]
         public string Email { get; set; }
-        public DateTime CreateDate { get; set; }
     }
 }
