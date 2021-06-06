@@ -7,9 +7,9 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
-COPY ["SimpleMortgageBackend/SimpleMortgageBackend.csproj", "SimpleMortgageBackend/"]
+COPY ["SimpleMortgageBackend.csproj", "SimpleMortgageBackend/"]
 RUN dotnet restore "SimpleMortgageBackend/SimpleMortgageBackend.csproj"
-COPY . .
+COPY . "SimpleMortgageBackend/"
 WORKDIR "/src/SimpleMortgageBackend"
 RUN dotnet build "SimpleMortgageBackend.csproj" -c Release -o /app/build
 
